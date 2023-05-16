@@ -1,10 +1,106 @@
 ﻿@page
 @model IndexModel
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
 @{
-    ViewData["Title"] = "Home page";
+	ViewData["Title"] = "Home page";
+	var user = await UserManager.GetUserAsync(User);
+}
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
 }
 
+
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+	<h1 class="display-4">Snackis</h1>
 </div>
+@if (SignInManager.IsSignedIn(User))
+{
+	<p>Du är ingloggad som @User.Identity.Name</p>
+	<form method="post" asp-page-handler="ToggleForm">
+		<input type="hidden" name="showForm" value="@Model.ShowForm" />
+		<button type="submit" class="btn btn-primary">
+			<i class="fas fa-plus-circle"></i>
+		</button>
+	</form>
+	@if (Model.ShowForm)
+	{
+		<form method="post" enctype="multipart/form-data">
+			<div class="form-group">
+				<label asp-for="@Model.Post.Title" class="form-label"></label>
+				<input asp-for="Post.Title" class="form-control">
+				<span asp-validation-for="Post.Title" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="Post.Description" class="form.label"></label>
+				<textarea asp-for="Post.Description" class="form-control" cols="40" rows="5"></textarea>
+				<span asp-validation-for="Post.Description" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<label asp-for="Post.SubjectId" class="form-label"></label>
+				<select asp-for="Post.SubjectId" class="form-control" asp-items="@(new SelectList(Model.Subjects, "Id", "Category"))">
+					<option value="">Välj ämne</option>
+				</select>
+				<span asp-validation-for="Post.Description" class="text-danger"></span>
+			</div>
+			<div class="form-group form-check">
+				<input asp-for="IsAnonymous" type="checkbox" class="form-check-input" id="anonymousCheck">
+				<label asp-for="IsAnonymous" class="form-check-label">Posta som anonym</label>
+			</div>
+
+
+			<div class="form-group">
+				<label asp-for="Post.Image" class="form-label"></label>
+				<input type="file" class="form-control" name="UploadedImage">
+			</div>
+
+
+			<input type="submit" class="btn btn-success" value="Spara Inlägg">
+		</form>
+	}
+
+}
+else
+{
+	<div class="alert alert-danger">Du är INTE inloggad </div>
+}
+
+<div class="container">
+	@if (Model.Posts != null)
+	{
+		foreach (var post in Model.Posts)
+		{
+			<div class="card m-2" style="width: 100%">
+				<img class="card-img-top" src="~/img/@post.Image">
+				<div class="card-body">
+					<h5 class="card-title">@post.Title</h5>
+					<p class="card-text">@post.Description</p>
+					@if (user != null && user.Id == post.UserName)
+					{
+						<a asp-route-deleteid="@post.Id" class="btn btn-primary">Ta bort</a>
+					}
+				</div>
+				<p class="card-footer">
+					@if (post.UserName == null)
+					{
+						<text>Anonym</text>
+					}
+					else
+					{
+						@user
+					}
+				</p>
+				<p class="card-footer">@post.Date</p>
+			</div>
+		}
+	}
+</div>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+

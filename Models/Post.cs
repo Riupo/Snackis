@@ -13,6 +13,6 @@ namespace Snackis.Models
         public virtual Subject? Subject { get; set; }
         public int? SubjectId { get; set; }
         public DateTime Date { get; set; }
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
     }
 }
